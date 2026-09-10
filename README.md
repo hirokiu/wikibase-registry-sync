@@ -30,3 +30,5 @@ bundleは [jp-medical-registry](https://github.com/hirokiu/jp-medical-registry) 
 ## Custom Wikibaseとの連携
 
 [固定commitに基づくAPI調査・並行開発の境界・バッチ入口の検討](docs/custom-wikibase-integration.md)を追加しました。標準Action APIを共通投入経路とし、既存runtime discoveryを利用する方針です。実サーバーでの互換性・性能検証は未実施です。
+
+ローカルDockerへの少量投入とWikidata PID/QID対応の検証方法は [LOCAL_IMPORT.md](docs/LOCAL_IMPORT.md) を参照。現段階はローカル10件限定の追加型writerです。
