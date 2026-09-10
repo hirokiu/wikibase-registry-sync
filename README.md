@@ -24,6 +24,10 @@ Wikibase SuiteとCustom Wikibaseへの汎用バッチ投入ツールです。医
 
 確認にはAction APIを使います。対象一覧をまとめて取得してキーを索引化し、該当Itemの現在値を読みます。ローカルの投入済み記録だけで一致とは判定しません。同一ジョブの再開では完了分を省略するため、最終確認には `bulk verify` を実行します。詳細は [確認ポリシー](docs/FULL_IMPORT.md#存在確認差分確認のポリシー) を参照してください。
 
+## 完全性の確認範囲
+
+`complete=true` はレコード処理完了、`bulk verify` はAction APIの検証です。**検索・SPARQLへの反映完了はまだ検証しません。** 出力の `publication_status` は `not_assessed` とします。APIによる存在・差分確認に加え、公開SPARQLでrevision・内容を照合する後段が必要です。[Suite / Customの完全性レビューと修正フロー](docs/INTEGRITY_FLOW_REVIEW.md) を参照してください。
+
 ## 導入
 
 ```sh

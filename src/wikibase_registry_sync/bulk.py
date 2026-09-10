@@ -214,6 +214,10 @@ def status(path):
         counts = dict(db.execute('SELECT status,count(*) FROM records GROUP BY status'))
         outcomes = dict(db.execute('SELECT outcome,count(*) FROM records WHERE outcome IS NOT NULL GROUP BY outcome'))
         return dict(mode=meta['mode'], dataset=meta['dataset'], total=meta['total'], counts=counts,
+                    complete_scope='record_processing',
+                    publication_status='not_assessed',
+                    query_verification='not_implemented',
+                    search_verification='not_implemented',
                     last_verification=meta.get('last_verification'),
                     outcomes=outcomes, complete=counts.get('done', 0) == meta['total'],
                     bundle_sha256=meta['bundle_sha256'], target=meta['registry']['target'])
@@ -328,7 +332,9 @@ def verify(api, db, meta, progress):
             checked += 1
         if checked % 1000 == 0:
             progress({'verified': checked, 'errors': errors})
-    result = {'verified': checked, 'errors': errors, 'passed': errors == 0, 'target': api.identity}
+    result = {'verified': checked, 'errors': errors, 'passed': errors == 0,
+              'verification_scope': 'action_api', 'publication_status': 'not_assessed',
+              'target': api.identity}
     db.execute('INSERT OR REPLACE INTO meta VALUES(?,?)', ('last_verification', encoded(result)))
     db.commit()
     return result

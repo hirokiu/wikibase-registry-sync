@@ -1,5 +1,7 @@
 # 全件Snapshotの初回投入
 
+**保証範囲の補足（2026-09-10）**：本書のverifyはAction APIの読み戻し検査。SPARQL・通常検索への同期完了は含まない。公開側の追加検証フローとSuite / Customの差異は [完全性レビュー](INTEGRITY_FLOW_REVIEW.md) を参照。`complete_scope=record_processing` と `publication_status=not_assessed` を出力し、登録と公開を区別する。
+
 ## 入力とモード
 
 現在のモードは `initial-load` のみ。Snapshotに含まれる全レコードについて、`dataset:record_key` をローカルItemの「レジストリレコードキー」で照合する。

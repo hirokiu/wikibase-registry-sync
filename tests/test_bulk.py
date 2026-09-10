@@ -203,6 +203,19 @@ class BulkTests(unittest.TestCase):
         self.api.data['Q1']['labels']['ja']['value'] = 'changed'
         self.assertFalse(run(self.api, self.job, verify_only=True)['passed'])
 
+    def test_api_success_never_claims_query_or_publication_completion(self):
+        self.ready(1)
+        result = run(self.api, self.job)
+        self.assertTrue(result['complete'])
+        self.assertEqual(result['complete_scope'], 'record_processing')
+        self.assertEqual(result['publication_status'], 'not_assessed')
+        self.assertEqual(result['query_verification'], 'not_implemented')
+        self.assertEqual(result['search_verification'], 'not_implemented')
+        checked = run(self.api, self.job, verify_only=True)
+        self.assertTrue(checked['passed'])
+        self.assertEqual(checked['verification_scope'], 'action_api')
+        self.assertEqual(checked['publication_status'], 'not_assessed')
+
     def test_job_cannot_be_overwritten(self):
         self.ready()
         with self.assertRaises(ValueError): prepare(self.source, REGISTRY, self.job)
