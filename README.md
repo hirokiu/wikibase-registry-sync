@@ -26,3 +26,7 @@ python -m unittest discover -s tests -v
 bundleは [jp-medical-registry](https://github.com/hirokiu/jp-medical-registry) の例で生成できます。registry内のP番号は説明用の仮値で、実サーバーのPropertyではありません。WikidataリンクにはURL型の専用ローカルPropertyを指定します。
 
 [設計と次の実装](docs/architecture.md)。MIT。旧WikibaseSyncのソースコードは現段階ではコピーしていません。
+
+## Custom Wikibaseとの連携
+
+[固定commitに基づくAPI調査・並行開発の境界・バッチ入口の検討](docs/custom-wikibase-integration.md)を追加しました。標準Action APIを共通投入経路とし、既存runtime discoveryを利用する方針です。実サーバーでの互換性・性能検証は未実施です。
