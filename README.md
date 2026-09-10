@@ -1,34 +1,51 @@
 # wikibase-registry-sync
 
-Wikibase SuiteとCustom Wikibaseへのバッチ投入・継続更新に向けた汎用ツールです。医療固有の処理を含まず、ほかのベースレジストリでも共通形式を利用できる設計とします。
+Wikibase SuiteとCustom Wikibaseへの汎用バッチ投入ツールです。医療機関固有の取得・正規化・名寄せは [jp-medical-registry](https://github.com/hirokiu/jp-medical-registry) に分離しています。
 
-Custom Wikibaseの通常APIと専用バッチ入口を比較し、必要な互換性・性能・再開機能を検証することを開発目的に含めます。
+## 現在の実装（0.2）
 
-## 現在の実装（0.1）
+**全件Snapshotの初回投入フロー**に対応しました。
 
-- bundleの型・キー・対応バージョン検証
-- Wikidata Property/Itemから対象ローカルIDへの明示mapping
-- 出典・限定子と確認済みWikidataリンクを保持したオフライン投入計画
+1. `bulk bootstrap`：Wikidata Property定義からローカルPropertyと対応PIDを準備
+2. `bulk prepare`：全入力の検査とSQLite投入ジョブの生成（サーバー書込みなし）
+3. `bulk run`：レコードキーで既存確認、未登録Itemの作成、途中再開
+4. `bulk verify`：投入内容の読み戻し検査
+5. `bulk export`：処理結果・差異をCSVに出力
 
-**サーバーへの書込みは未実装です。** `plan`は対象サーバーを読まず、現在値との差分や対象Propertyの型を検証しません。Suite/Customの両方とも実接続の互換性試験は未実施です。
+既存の内容が一致すれば作成を省略し、不一致は要確認として停止します。現在値の更新・削除はしません。月次の `upsert` とSnapshot入れ替えは、将来の別モードとして設計しています。
 
-## ローカル実行
+全国医療機関224,517件の投入ジョブ生成と、稼働中のローカルCustom Wikibase開発用coreへの21件の投入・再開・再照合を検証しました。全国全件の実投入、最新版Custom Wikibase製品runtimeとSuiteの実機互換検証は未実施です。
+
+## 導入
 
 ```sh
 python3 -m venv .venv
 . .venv/bin/activate
 pip install -e .
-wikibase-registry-sync validate /tmp/medical-bundle.json
-wikibase-registry-sync plan /tmp/medical-bundle.json examples/registry.json
-python -m unittest discover -s tests -v
+python -m unittest discover -s tests
 ```
 
-bundleは [jp-medical-registry](https://github.com/hirokiu/jp-medical-registry) の例で生成できます。registry内のP番号は説明用の仮値で、実サーバーのPropertyではありません。WikidataリンクにはURL型の専用ローカルPropertyを指定します。
+[全件投入の実行手順・再開・運用上の範囲](docs/FULL_IMPORT.md) に、準備から検証までのコマンドを記載しています。
 
-[設計と次の実装](docs/architecture.md)。MIT。旧WikibaseSyncのソースコードは現段階ではコピーしていません。
+```sh
+wikibase-registry-sync bulk prepare bundle.json \
+  --registry state/registry.json --job state/jobs/initial.sqlite
+wikibase-registry-sync bulk run --job state/jobs/initial.sqlite
+wikibase-registry-sync bulk verify --job state/jobs/initial.sqlite
+wikibase-registry-sync bulk export --job state/jobs/initial.sqlite \
+  --output artifacts/initial-report.csv
+```
 
-## Custom Wikibaseとの連携
+認証情報は `WIKIBASE_USER` と `WIKIBASE_PASSWORD` 環境変数で渡します。サーバーURL・wikiid・Property対応はbootstrapで作るregistryに保存します。資格情報、原データ、投入ジョブ、実行結果はGit管理しません。
 
-[固定commitに基づくAPI調査・並行開発の境界・バッチ入口の検討](docs/custom-wikibase-integration.md)を追加しました。標準Action APIを共通投入経路とし、既存runtime discoveryを利用する方針です。実サーバーでの互換性・性能検証は未実施です。
+## 互換性と資料
 
-ローカルDockerへの少量投入とWikidata PID/QID対応の検証方法は [LOCAL_IMPORT.md](docs/LOCAL_IMPORT.md) を参照。現段階はローカル10件限定の追加型writerです。
+- 標準Action APIを使用し、SPARQLサービスに依存しません。HTTPSサーバーとloopbackのHTTP接続を受け付けます。
+- Wikidata PIDはローカルProperty自身の文に、確認済みQIDは医療機関Itemの文に保存します。ローカル採番とは区別します。
+- `validate` / `plan` は従来のオフライン検証・計画コマンドです。`plan` はサーバー上の差分を取得しません。
+- [全件投入の検証記録](docs/FULL_IMPORT_TEST_20260910.md)
+- [初回3件の表示・PID/QID確認記録](docs/LOCAL_IMPORT.md)
+- [Custom Wikibase API調査と並行開発の境界](docs/custom-wikibase-integration.md)
+- [初期アーキテクチャ案](docs/architecture.md)
+
+MIT。旧WikibaseSync・Custom Wikibaseのソースコードはコピーしていません。

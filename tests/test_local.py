@@ -18,3 +18,26 @@ class LocalTests(unittest.TestCase):
     def test_state_cannot_move_to_other_target(self):
         class Fake:identity={'wikiid':'second'}
         with self.assertRaises(ValueError):Importer(Fake(),'unused',{'target':{'wikiid':'first'}})
+
+class InventoryTests(unittest.TestCase):
+    def test_batched_inventory_over_multiple_pages(self):
+        from wikibase_registry_sync.action_api import ActionAPI
+        class Fake(ActionAPI):
+            def __init__(self):
+                self.batch_sizes=[]
+            def call(self, **params):
+                if params['action']=='query':
+                    offset=int(params.get('apcontinue',0));end=min(offset+500,1203)
+                    result={'query':{'allpages':[{'title':'Item:Q'+str(i+1)} for i in range(offset,end)]}}
+                    if end<1203:result['continue']={'apcontinue':str(end),'continue':'-||'}
+                    return result
+                ids=params['ids'].split('|');self.batch_sizes.append(len(ids))
+                return {'entities':{identifier:{'id':identifier} for identifier in ids}}
+        api=Fake();entities=list(api.iter_entities(120))
+        self.assertEqual(len(entities),1203)
+        self.assertEqual(entities[-1]['id'],'Q1203')
+        self.assertEqual(max(api.batch_sizes),50)
+        self.assertEqual(len(api.batch_sizes),25)
+    def test_nonlocal_plain_http_rejected(self):
+        from wikibase_registry_sync.action_api import ActionAPI
+        with self.assertRaises(ValueError):ActionAPI('http://example.org/api.php','test')
