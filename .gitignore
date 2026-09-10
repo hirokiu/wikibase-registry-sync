@@ -216,3 +216,17 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+.env
+.env.*
+!.env.example
+secrets/
+config/local.*
+data/raw/
+data/processed/
+artifacts/
+bundles/
+state/
+logs/
+backups/
+.DS_Store

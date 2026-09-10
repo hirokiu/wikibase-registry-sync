@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wikibase-registry-sync"
+version = "0.1.0"
+description = "Reproducible registry data processing"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+
+[project.scripts]
+wikibase-registry-sync = "wikibase_registry_sync.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
